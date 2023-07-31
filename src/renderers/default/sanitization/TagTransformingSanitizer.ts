@@ -163,7 +163,10 @@ export class TagTransformingSanitizer {
                     href = href.trim();
                     const attys: sanitize.Attributes = { href };
                     // If it's not a (relative or absolute) steemit URL...
-                    if (!this.options.isLinkSafeFn(href)) {
+                    if (
+                        !this.options.isLinkSafeFn(href) &&
+                        (attys.href.startsWith("http") || attys.href.startsWith("https"))
+                    ) {
                         // attys.target = '_blank' // pending iframe impl https://mathiasbynens.github.io/rel-noopener/
                         attys.rel = this.options.addNofollowToLinks ? "nofollow noopener" : "noopener";
                         attys.title = this.localization.phishingWarning;
