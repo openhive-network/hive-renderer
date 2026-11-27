@@ -181,4 +181,41 @@ describe('HtmlDOMParser', () => {
         const res = new HtmlDOMParser(htmlParserOptions).parse(testString).getParsedDocumentAsString();
         expect(res).to.equal(htmlified);
     });
+
+    describe('keeps replaced nodes where they were', () => {
+        const xml = (body: string) => `<xml xmlns="http://www.w3.org/1999/xhtml">${body}</xml>`;
+        const text = (res: string) => res.replace(/<[^>]+>/g, '');
+
+        it('should keep a linkified mention in front of a following link', () => {
+            const dirty = xml('<p>models that @steddyman <a href="https://hive.blog/@steevc/p">printed for me</a> some years ago.</p>');
+            const res = new HtmlDOMParser(htmlParserOptions).parse(dirty).getParsedDocumentAsString();
+            expect(text(res)).to.equal('models that @steddyman printed for me some years ago.');
+            expect(res).to.contain('<a href="/@steddyman">@steddyman</a>');
+        });
+
+        it('should keep a linkified hashtag in front of bold text', () => {
+            const dirty = xml('<p>see #hive for <strong>this</strong> today</p>');
+            const res = new HtmlDOMParser(htmlParserOptions).parse(dirty).getParsedDocumentAsString();
+            expect(text(res)).to.equal('see #hive for this today');
+        });
+
+        it('should keep an iframe wrapper in place', () => {
+            const dirty = xml('<p>before</p><iframe src="https://www.youtube.com/embed/abc"></iframe><p>after</p>');
+            const res = new HtmlDOMParser(htmlParserOptions).parse(dirty).getParsedDocumentAsString();
+            expect(res.indexOf('before')).to.be.lessThan(res.indexOf('videoWrapper'));
+            expect(res.indexOf('videoWrapper')).to.be.lessThan(res.indexOf('after'));
+        });
+
+        it('should keep an unlinked phishing link in place', () => {
+            const dirty = xml('<p>before <a href="https://steewit.com/signup">https://hive.blog/signup</a> after</p>');
+            const res = new HtmlDOMParser(htmlParserOptions).parse(dirty).getParsedDocumentAsString();
+            expect(text(res)).to.equal('before https://hive.blog/signup / https://steewit.com/signup after');
+        });
+
+        it('should keep a hidden image in place', () => {
+            const dirty = xml('<p>before <img src="https://example.com/a.png" /> after</p>');
+            const res = new HtmlDOMParser({...htmlParserOptions, hideImages: true}).parse(dirty).getParsedDocumentAsString();
+            expect(text(res)).to.equal('before https://example.com/a.png after');
+        });
+    });
 });

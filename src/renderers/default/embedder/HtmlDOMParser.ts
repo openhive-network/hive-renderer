@@ -137,8 +137,7 @@ export class HtmlDOMParser {
                     phishyDiv.setAttribute('class', 'phishy');
                     const parent = child.parentNode;
                     if (parent) {
-                        parent.appendChild(phishyDiv);
-                        parent.removeChild(child);
+                        parent.replaceChild(phishyDiv, child);
                     }
                 } else {
                     child.setAttribute('href', sanitizedLink);
@@ -164,8 +163,7 @@ export class HtmlDOMParser {
         const wrapper = this.domParser.parseFromString(`<div class="videoWrapper">${html}</div>`);
         const parent = child.parentNode;
         if (parent) {
-            parent.appendChild(wrapper);
-            parent.removeChild(child);
+            parent.replaceChild(wrapper.documentElement || wrapper, child);
         }
     }
 
@@ -220,8 +218,7 @@ export class HtmlDOMParser {
                 const newChild = this.domParser.parseFromString(`<span>${content}</span>`);
                 const parent = child.parentNode;
                 if (parent) {
-                    parent.appendChild(newChild);
-                    parent.removeChild(child);
+                    parent.replaceChild(newChild.documentElement || newChild, child);
                 }
                 return newChild;
             }
@@ -305,8 +302,7 @@ export class HtmlDOMParser {
                 pre.appendChild(doc.createTextNode(image.getAttribute('src') || ''));
                 const parent = image.parentNode;
                 if (parent) {
-                    parent.appendChild(pre);
-                    parent.removeChild(image);
+                    parent.replaceChild(pre, image);
                 }
             }
         }
